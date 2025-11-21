@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'src/**'
-
+  workflow_dispatch:
 env:
   REGISTRY_NAME: ahqjlh3o6iwvicosureg  # Replace with your ACR name
   IMAGE_NAME: chat-app
