@@ -1,57 +1,45 @@
-name: Customer Loyalty Agent Deployment
+name: Deploy Customer Loyalty Agent
 
 on:
   push:
-    branches:
-      - main
+    # Paths include the initializer, prompt, workflow, and any associated tools
     paths:
       - 'src/app/agents/customerLoyaltyAgent_initializer.py'
-      - 'src/prompts/CustomerLoyaltyAgentPrompt.txt'
       - 'src/app/tools/discountLogic.py'
-  workflow_dispatch:  # Allow manual triggering
-
-env:
-  PYTHON_VERSION: '3.11'
+      - 'src/prompts/CustomerLoyaltyAgentPrompt.txt'
+      - '.github/workflows/deploy-customer-loyalty-agent.yml'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
-  deploy-customer-loyalty-agent:
+  run-customer-loyalty-agent:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
-      
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
+
+      - name: Create .env file from secret
+        run: 'echo "$ENV" > src/.env'
+        shell: bash
+        env:
+          ENV: ${{ secrets.ENV }}
+
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-      
+          python-version: '3.12'
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r src/requirements.txt
-      
-      - name: Azure Login (Service Principal)
-        uses: azure/login@v2
+
+      - name: Login via Azure CLI
+        uses: azure/login@v2.1.1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      
-      - name: Create .env file from secret
+            creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Run customer loyalty agent initializer
         run: |
-          echo "${{ secrets.ENV }}" > src/.env
-      
-      - name: Execute Customer Loyalty Agent Initializer
-        working-directory: src/app/agents
-        run: |
-          python customerLoyaltyAgent_initializer.py
-      
-      - name: Clean up .env file
-        if: always()
-        run: |
-          rm -f src/.env
-      
-      - name: Azure Logout
-        if: always()
-        run: |
-          az logout
+          cd app/
+          python app/agents/customerLoyaltyAgent_initializer.py
