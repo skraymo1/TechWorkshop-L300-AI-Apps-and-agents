@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY_NAME: ahqjlh3o6iwvicosureg  # Replace with your ACR name
-  IMAGE_NAME: techworkshop-app
+  IMAGE_NAME: chat-app
   
 jobs:
   build-and-push:
